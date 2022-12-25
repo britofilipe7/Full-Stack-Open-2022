@@ -4,6 +4,8 @@ import Form from './components/Form'
 import Persons from './components/Persons'
 import axios from 'axios'
 import personsService from './services/persons'
+import Notification from './components/Notification'
+import Error from './components/Error'
 
 const checkName = (persons, name) => persons.find(person => person.name.toLowerCase() === name.toLowerCase())
 
@@ -12,6 +14,9 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newSearch, setNewSearch] = useState('')
+  const [notification, setNotification] = useState(null)
+  const [error, setError] = useState(null)
+
 
   const addName = (event) => {
     event.preventDefault()
@@ -25,6 +30,10 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
+        setNotification(`Added ${newName}`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
       })
     } else {
       const repeatedPerson = persons.find(person => person.name.toLowerCase() === newName.toLowerCase())
@@ -39,6 +48,10 @@ const App = () => {
             setNewName('')
             setNewNumber('')
           })
+          setNotification(`Number updated ${repeatedPerson.name}`)
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
           console.log('number updated');
         }
       }
@@ -55,10 +68,17 @@ const App = () => {
     const person = persons.find((p) => p.id === id)
     const confirmDelete = window.confirm(`Delete ${person.name}?`)
     if (confirmDelete) {
-      personsService.deletePerson(id).then(() => {
+      personsService
+      .deletePerson(id).then(() => {
         const filteredPersons = persons.filter((person) => person.id !== id)
         setPersons(filteredPersons)
         setNewSearch("")
+      })
+      .catch(error => {
+        setError(`Information of ${person.name} has already been removed from server`)
+        setTimeout(() => {
+          setError(null)
+        }, 5000)
       })
     }
   }
@@ -91,6 +111,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification} />
+      <Error message={error} />
 
       <Filter newSearch={newSearch} handleSearchChange={handleSearchChange} />
       
